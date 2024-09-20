@@ -36,20 +36,14 @@ services:
     networks:
       - kafka-network
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
+  cmak:
+    image: hlebalbau/cmak:latest
+    container_name: cmak
     ports:
-      - "9000:8080"
+      - "9000:9000"
     environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka1:9092"
-      KAFKA_CLUSTERS_0_ZOOKEEPER: "zoo1:2181"
-      KAFKA_CLUSTERS_0_PROPERTIESTIMEOUT: 3000
-      KAFKA_CLUSTERS_0_METRICSTIMEOUT: 3000
-      AUTH_TYPE: "LOGIN_FORM"
-      SPRING_SECURITY_USER_NAME: admin
-      SPRING_SECURITY_USER_PASSWORD: pass
+      ZK_HOSTS: "zoo1:2181"  # Connect CMAK to Zookeeper
+      CMAK_ARGS: "-Dconfig.file=/cmak/conf/application.conf -Dcmak.zkhosts=zoo1:2181 -Dcmak.kafka-manager.base-zk-paths=/kafka -Dcmak.clusters.0.name=local-cluster -Dcmak.clusters.0.zkhosts=zoo1:2181 -Dcmak.clusters.0.kafka-version=2.8.0 -Dcmak.clusters.0.jmx-enabled=true"
     depends_on:
       - kafka1
     networks:
