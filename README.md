@@ -1,5 +1,4 @@
 # sciDX-kafka
-
 # Kafka SSL/TLS Setup Guide
 
 This document outlines the steps needed to configure SSL/TLS for a ZooKeeper instance and multiple Kafka brokers (`broker0`, `broker1`, `broker2`). It includes generating a Certificate Authority (CA), creating truststores and keystores, and signing certificates for secure communication.
@@ -53,6 +52,50 @@ Import the signed certificate back into the ZooKeeper keystore.
 
 ```sh
 keytool -keystore kafka.zookeeper.keystore.jks -alias zookeeper -import -file ca-signed-zookeeper
+```
+
+## ZooKeeper Client SSL Configuration
+
+### Step 1: Create ZooKeeper Client Truststore
+Create a truststore for the ZooKeeper client to store the CA certificate.
+
+```sh
+keytool -keystore kafka.zookeeper-client.truststore.jks -alias ca-cert -import -file ca-cert
+```
+
+### Step 2: Create ZooKeeper Client Keystore
+Create a keystore for the ZooKeeper client and generate a key pair.
+
+```sh
+keytool -keystore kafka.zookeeper-client.keystore.jks -alias zookeeper -validity 3650 -genkey -keyalg RSA -ext SAN=dns:localhost
+```
+
+### Step 3: Create Certificate Signing Request (CSR) for ZooKeeper Client
+Generate a Certificate Signing Request (CSR) for the ZooKeeper client keystore.
+
+```sh
+keytool -keystore kafka.zookeeper-client.keystore.jks -alias zookeeper -certreq -file ca-request-zookeeper-client
+```
+
+### Step 4: Sign the CSR for ZooKeeper Client
+Sign the CSR using the CA created earlier.
+
+```sh
+openssl x509 -req -CA ca-cert -CAkey ca-key -in ca-request-zookeeper-client -out ca-signed-zookeeper-client -days 3650 -CAcreateserial
+```
+
+### Step 5: Import the CA into ZooKeeper Client Keystore
+Import the CA certificate into the ZooKeeper client keystore.
+
+```sh
+keytool -keystore kafka.zookeeper-client.keystore.jks -alias ca-cert -import -file ca-cert
+```
+
+### Step 6: Import the Signed Certificate into ZooKeeper Client Keystore
+Import the signed certificate back into the ZooKeeper client keystore.
+
+```sh
+keytool -keystore kafka.zookeeper-client.keystore.jks -alias zookeeper -import -file ca-signed-zookeeper-client
 ```
 
 ## Kafka Broker 0 SSL Configuration
@@ -189,5 +232,5 @@ keytool -keystore kafka.broker2.keystore.jks -alias broker2 -import -file ca-sig
 
 ---
 
-By following these commands, you will have successfully set up SSL/TLS for your ZooKeeper instance and all three Kafka brokers (`broker0`, `broker1`, `broker2`). Each component will use a certificate signed by the same Certificate Authority, ensuring trusted and secure communication across the entire Kafka cluster.
+By following these commands, you will have successfully set up SSL/TLS for your ZooKeeper instance, ZooKeeper client, and all three Kafka brokers (`broker0`, `broker1`, `broker2`). Each component will use a certificate signed by the same Certificate Authority, ensuring trusted and secure communication across the entire Kafka cluster.
 
