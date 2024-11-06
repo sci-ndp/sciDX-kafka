@@ -12,6 +12,7 @@ services:
       ZOOKEEPER_SERVERS: zoo1:2888:3888
     networks:
       - kafka-network
+    restart: unless-stopped  # Ensure container restarts automatically
 
   kafka1:
     image: confluentinc/cp-kafka:7.3.2
@@ -35,6 +36,7 @@ services:
       - zoo1
     networks:
       - kafka-network
+    restart: unless-stopped  # Ensure container restarts automatically
 
   cmak:
     image: hlebalbau/kafka-manager:latest
@@ -48,6 +50,7 @@ services:
       - kafka1
     networks:
       - kafka-network
+    restart: unless-stopped  # Ensure container restarts automatically
 
 networks:
   kafka-network:
